@@ -46,10 +46,10 @@ MFRC522::MIFARE_Key key;
 byte sector         = 1;
 byte blockAddr      = 4;
 byte dataBlock[]    = {
-        0xFF, 0x00, 0xFF, 0xFF, //  byte 1 for color encoding
-        0xFF, 0xFF, 0xFF, 0xFF, 
-        0xFF, 0xFF, 0xFF, 0xFF, 
-        0xFF, 0xFF, 0xFF, 0x02  // byte 15 for event track bit[0] = burnerot2018, bit[1] = contra2019
+        0x00, 0x00, 0x00, 0x00, //  byte 1 for color encoding
+        0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x00, 0x02  // byte 15 for event track bit[0] = burnerot2018, bit[1] = contra2019
     };
 byte trailerBlock   = 7;
 byte buffer[18];
@@ -98,7 +98,7 @@ void setup() {
 void loop() {
 
     // change this to encode chips with different colors from 0x1 to 0x5
-    chip_color = 0x1;
+    chip_color = 0x6;
     event_track = 0x2; // event track byte, bit[0] = burnerot2018, bit[1] = contra2019
 
     // advance leds first
@@ -163,12 +163,13 @@ void loop() {
       mfrc522.PICC_DumpMifareClassicSectorToSerial(&(mfrc522.uid), &key, sector);
       Serial.println();
       
-      is_old_chip = (buffer[0] != 0xFF);  // first byte not 0xFF means old chip format
-      if (is_old_chip) {
-        chip_color = buffer[1] & 0x0F; // remove valid and win bits from color byte
-        Serial.print ("old chip found with color "); Serial.println(chip_color, HEX);
-        event_track = 0x3; // marking the chip with burnerot bit as well as contra bit
-      }
+      // not checking for old chips, just making everything contra2019!!
+      // is_old_chip = (buffer[0] != 0x00);  // first byte not 0x00 means old chip format
+      // if (is_old_chip) {
+      //   chip_color = buffer[1] & 0x0F; // remove valid and win bits from color byte
+      //   Serial.print ("old chip found with color "); Serial.println(chip_color, HEX);
+      //   event_track = 0x3; // marking the chip with burnerot bit as well as contra bit
+      // }
     }
     
     // FastLED.clear();
@@ -187,7 +188,7 @@ void loop() {
     dataBlock[1] = chip_color;
     dataBlock[15] = event_track;
     
-    if (!UIDcompare(prevReadCard,readCard, 4)) {
+    // if (!UIDcompare(prevReadCard,readCard, 4)) {
       write_success = write_and_verify(blockAddr, dataBlock, buffer, size);
       if (!write_success) {
         Serial.println(F("write failed! aborting chip handling"));
@@ -201,12 +202,12 @@ void loop() {
         Serial.print(F("write worked, encoded chip with color 0x")); Serial.print(buffer[1]);
         Serial.print(F(" and event track byte 0x")); Serial.println(buffer[15]);
       }
-    }
-    else {
-      Serial.println("Same UID, not writing anything");
-      Serial.print(F("Chip encoded color is ")); Serial.println(buffer[1], HEX);
-      Serial.print(F("Chip encoded event track byte is ")); Serial.println(buffer[15], HEX);
-    }
+    // }
+    // else {
+    //   Serial.println("Same UID, not writing anything");
+    //   Serial.print(F("Chip encoded color is ")); Serial.println(buffer[1], HEX);
+    //   Serial.print(F("Chip encoded event track byte is ")); Serial.println(buffer[15], HEX);
+    // }
 
     // Dump the sector data, good for debug
     //Serial.println(F("Current data in sector:"));
